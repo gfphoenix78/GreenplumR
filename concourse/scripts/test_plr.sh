@@ -87,6 +87,7 @@ function install_libraries() {
       ;;
     ubuntu)
       apt update
+      DEBIAN_FRONTEND=noninteractive apt install -y apt-utils
       DEBIAN_FRONTEND=noninteractive apt install -y r-base libpq-dev
       ;;
     *)
@@ -109,7 +110,6 @@ function install_libraries_full() {
     # no more packages need to install
     ;;
   ubuntu)
-    DEBIAN_FRONTEND=noninteractive apt install -y apt-utils
     DEBIAN_FRONTEND=noninteractive apt install -y pkg-config \
         texlive-latex-base texlive-fonts-extra
     ;;

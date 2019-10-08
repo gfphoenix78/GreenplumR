@@ -105,19 +105,18 @@ db.gptapply <- function(X, INDEX, FUN = NULL, output.name = NULL, output.signatu
 
         index <- paste('"', INDEX, '"', sep = '')
         funName <- .to.func.name(basename)
-        if (is.null(output.name))
-        {
-            query <- sprintf("WITH gpdbtmpa AS (\nSELECT (%s(%s)) AS gpdbtmpb FROM (SELECT %s FROM %s GROUP BY %s) tmptbl\n)\nSELECT (gpdbtmpb::%s).* FROM gpdbtmpa;",
-                    funName, param.name.list, param.group.list, relation_name, index, typeName)
-        }
-        else
-        {
-            query <- sprintf("CREATE TABLE %s AS\nWITH gpdbtmpa AS (\nSELECT (%s(%s)) AS gpdbtmpb FROM (SELECT %s FROM %s GROUP BY %s) tmptbl\n)\nSELECT (gpdbtmpb::%s).* FROM gpdbtmpa %s;",
-                    output.name, funName, param.name.list, param.group.list, relation_name, index, typeName, 
+        if (is.null(output.name)) {
+            query <- sprintf("WITH gpdbtmpa AS (\nSELECT (%s(%s)) AS gpdbtmpb FROM (SELECT %s FROM %s%s GROUP BY %s) tmptbl\n)\nSELECT (gpdbtmpb::%s).* FROM gpdbtmpa;",
+                    funName, param.name.list, param.group.list,
+                    relation_name, .where.str(X$where), index, typeName)
+        } else {
+            query <- sprintf("CREATE TABLE %s AS\nWITH gpdbtmpa AS (\nSELECT (%s(%s)) AS gpdbtmpb FROM (SELECT %s FROM %s%s GROUP BY %s) tmptbl\n)\nSELECT (gpdbtmpb::%s).* FROM gpdbtmpa %s;",
+                    output.name, funName, param.name.list, param.group.list, relation_name,
+                    .where.str(X$where), index, typeName,
                     .distribute.str(output.distributeOn, case.sensitive = case.sensitive))
             clearStmt <- .clear.existing.table(output.name, clear.existing)
             if (nchar(clearStmt) > 0)
-                        query <- paste(clearStmt, query)
+                query <- paste(clearStmt, query)
         }
         results <- db.q(query, nrows = NULL, verbose = debugger.mode)
 
